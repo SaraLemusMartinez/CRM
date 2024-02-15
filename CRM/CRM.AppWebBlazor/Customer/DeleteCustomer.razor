@@ -1,0 +1,80 @@
+﻿@page "/delete-customer/{Id:int}"
+
+@using CRM.DTOs.CustomerDTOs;
+@using Microsoft.AspNetCore.Components.Forms;
+@using CRM.AppWebBlazor.Data;
+
+<h3>Eliminar Cliente</h3>
+@if (isSuccess == false && isError == false)
+{
+    <div class="row">
+        <div class="col-4">
+            <div class="form-group">
+                <label for="Name">Nombre:</label>
+                <input type="text" class="form-control" disabled @bind="customer.Name" />
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="form-group">
+                <label for="LastName">Apellido:</label>
+                <input type="text" class="form-control" disabled @bind="customer.LastName" />
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="form-group">
+                <label for="Address">Diraccion:</label>
+                <textarea disabled class="form-control" @bind="customer.Address"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <br />
+    <div class="row">
+        <div class="col-12">
+            <button class="btn btn-primary" @onclick="async () => await Delete()">Eliminar</button>
+            <NavLink hrf="/customer-list" class="btn btn-secondary">Cancelar</NavLink>
+        </div>
+    </div>
+}
+else if (isSuccess)
+{
+    <p class="alert alert-error">Sucedio un error al intentar eliminar</p>
+    <NavLink href="/customer-list" class="btn btn-primary">Aceptar</NavLink>
+}
+@code {
+    //declaracion de un parametro llamdo "id" que puede ser pasado al componente
+    [Parameter]
+    public int Id{ get; set; }
+
+    //Inyeccion de dependencia de customerService para acceder a los servicios relacionados con los cliente
+    [Inject]
+    CustomerService customerService{ get; set; }
+
+    //declaracion e inicializacion de un objeto "customer" para almacenar la informacion del cliente
+    GetIdResultCustomerDTO customer = new GetIdResultCustomerDTO();
+
+    //Declaracion de variables booleanas para manejar el estado de exito y error
+    bool isSuccess = false;
+    bool isError = false;
+    //Metodo que se llama cuando se inicializa el componente
+    protected override async Task OnInitializedAsync()
+    {
+        //Realiza una llamada asincronica para obtener la informacion del cliente por su Id
+        customer = await customerService.GetById(Id);
+    }
+
+    //Metodo para eliminar el cliente 
+    private async Task Delete()
+    {
+        //Realiza una llamada asincronica para eliminar el cliente por su ID
+        int result = await customerService.Delete(customer.Id);
+
+        //Verifica si el resultado de la eliminacion es diferente de cero (exito) o igual a cero (error)
+        if (result != 0)
+            isSuccess = true;
+        else
+            isError = true;
+    }
+}
